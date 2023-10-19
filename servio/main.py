@@ -82,7 +82,7 @@ def read_status_talons(body: list[schemas.StatusRequest], db: Session = Depends(
     """
     result = list()
     for row in body:
-        result.append(crud.get_status_cards(db, row.issuer_id, row.card_id, row.quantity, row.enabled))
+        result.extend(crud.get_status_cards(db, row.issuer_id, row.card_id, row.quantity, row.enabled))
 
     return result
 
