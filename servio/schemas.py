@@ -18,6 +18,6 @@ class Talon(CardBase):
 
 class StatusRequest(BaseModel):
     issuer_id: int
-    first_num: str
+    card_id: str
     quantity: int
     enabled: bool

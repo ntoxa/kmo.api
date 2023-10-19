@@ -1,10 +1,33 @@
-from fastapi import Depends, FastAPI, HTTPException
+import logging
+from typing import Callable
+
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
+from fastapi.routing import APIRoute
 from sqlalchemy.orm import Session
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
 
+
+class LoggerRoute(APIRoute):
+    def get_route_handler(self) -> Callable:
+        original_route_handler = super().get_route_handler()
+
+        async def logging_handler(request: Request) -> Response:
+            req_body = await request.body()
+            logger.info(req_body.decode())
+            response: Response = await original_route_handler(request)
+            res_body = response.body
+            logger.info(res_body.decode())
+            return response
+
+        return logging_handler
+
+
+logger = logging.getLogger()
 app = FastAPI()
+router = APIRouter(route_class=LoggerRoute)
+
 
 # Dependency
 def get_db():
@@ -46,18 +69,22 @@ def read_talons_quantity(issuer_id: int,
     pass
 
 
-@app.post("/get_status_talons", response_model=list)
-def read_status_talons(data: list[schemas.StatusRequest], db: Session = Depends(get_db)):
+@router.post("/get_status_talons", response_model=list)
+#@app.post("/get_status_talons", response_model=list)
+def read_status_talons(body: list[schemas.StatusRequest], db: Session = Depends(get_db)):
     """
     Возвращает список номеров из базы, определенных параметрами:
 
     - **issuer_id**: код эмитента (Число)
-    - **first_num**: первый номер диапазона (Строка)
+    - **card_id**: первый номер диапазона (Строка)
     - **quantity**: количество номеров вдиапазоне (Число)
     - **enabled**: статус талона (Булево)
     """
     result = list()
-    for row in data:
-        result.append(crud.get_status_cards(db, row.issuer_id, row.first_num, row.quantity, row.enabled))
+    for row in body:
+        result.append(crud.get_status_cards(db, row.issuer_id, row.card_id, row.quantity, row.enabled))
 
     return result
+
+
+app.include_router(router)
