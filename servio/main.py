@@ -15,21 +15,39 @@ def get_db():
         db.close()
 
 
-@app.get("/cards/", response_model=schemas.Card)
-def read_card(issuer_id: int, card_id: str, db: Session = Depends(get_db)):
-    card =  crud.get_card(db, issuer_id, card_id)
-    if card is None:
-        raise HTTPException(status_code=404, detail="Card not found")
-    return card
+@app.get("/talons", response_model=list[schemas.Talon])
+def read_talons(issuer_id: int | None = None,
+                offset: int = 0,
+                limit: int = 100,
+                db: Session = Depends(get_db)
+                ):
+    talons = crud.get_talons(db, issuer_id, offset, limit)
+    return talons
 
 
-@app.post("/cards2/", response_model=list[schemas.Card])
-def read_cards(issuer_id: int, card_ids: list[str], db: Session = Depends(get_db)):
-    return crud.get_cards(db, issuer_id, card_ids)
+@app.get("/talons/{talon_id}", response_model=schemas.Talon)
+def read_talon(talon_id: str, issuer_id: int, db: Session = Depends(get_db)):
+    """
+    Инфо о талоне.
+    """
+    talon = crud.get_talon(db, talon_id, issuer_id)
+    if talon is None:
+        raise HTTPException(status_code=404, detail="Talon not found")
+    return talon
 
 
-@app.get("/get_status_talons")
-def read_status_talons(issuer_id: int, first_num: str, quantity: int, enabled: bool, db: Session = Depends(get_db)):
+#@app.get("/talons_quantity")
+def read_talons_quantity(issuer_id: int,
+                         enabled: bool,
+                         talon_mask: str = "",
+                         db: Session = Depends(get_db)
+                         ):
+    talon_mask += "%"
+    pass
+
+
+@app.post("/get_status_talons", response_model=list)
+def read_status_talons(data: list[schemas.StatusRequest], db: Session = Depends(get_db)):
     """
     Возвращает список номеров из базы, определенных параметрами:
 
@@ -38,5 +56,8 @@ def read_status_talons(issuer_id: int, first_num: str, quantity: int, enabled: b
     - **quantity**: количество номеров вдиапазоне (Число)
     - **enabled**: статус талона (Булево)
     """
-    result = crud.get_status_cards(db, issuer_id, first_num, quantity, enabled)
+    result = list()
+    for row in data:
+        result.append(crud.get_status_cards(db, row.issuer_id, row.first_num, row.quantity, row.enabled))
+
     return result
