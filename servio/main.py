@@ -1,7 +1,7 @@
 import logging
-from typing import Callable
+from typing import Callable, Annotated
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response, Query
 from fastapi.routing import APIRoute
 from sqlalchemy.orm import Session
 
@@ -59,18 +59,17 @@ def read_talon(talon_id: str, issuer_id: int, db: Session = Depends(get_db)):
     return talon
 
 
-#@app.get("/talons_quantity")
+@app.get("/talons_quantity", response_model=int)
 def read_talons_quantity(issuer_id: int,
                          enabled: bool,
-                         talon_mask: str = "",
+                         talon_mask: Annotated[str, Query(regex="^\d{5}$")] = "",
                          db: Session = Depends(get_db)
                          ):
     talon_mask += "%"
-    pass
+    return crud.get_talons_quantity(db, issuer_id, talon_mask, enabled)
 
 
 @router.post("/get_status_talons", response_model=list)
-#@app.post("/get_status_talons", response_model=list)
 def read_status_talons(body: list[schemas.StatusRequest], db: Session = Depends(get_db)):
     """
     Возвращает список номеров из базы, определенных параметрами:
@@ -82,7 +81,9 @@ def read_status_talons(body: list[schemas.StatusRequest], db: Session = Depends(
     """
     result = list()
     for row in body:
-        result.extend(crud.get_status_cards(db, row.issuer_id, row.card_id, row.quantity, row.enabled))
+        result.extend(crud.get_status_cards(
+            db, row.issuer_id, row.card_id, row.quantity, row.enabled)
+            )
 
     return result
 

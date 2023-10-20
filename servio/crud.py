@@ -17,9 +17,9 @@ def get_talons(db: Session, issuer_id: int | None,  offset: int = 0, limit: int 
 
 
 def get_talons_quantity(db: Session, issuer_id: int, talon_mask: str, enabled: bool):
-    return db.query(func.count(models.Talon.card_id).filter(
+    return db.query(func.count(models.Talon.card_id)).filter(
         and_(models.Talon.issuer_id == issuer_id, models.Talon.card_id.like(talon_mask), models.Talon.enabled == enabled)
-    )).scalar()
+    ).scalar()
 
 
 def get_status_cards(db: Session, issuer_id: int, first_num: str, quantity: int, enabled: bool):
