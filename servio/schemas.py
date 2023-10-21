@@ -1,16 +1,13 @@
-from datetime import datetime
+from datetime import date
 
 from pydantic import BaseModel
 
 
-class CardBase(BaseModel):
+class Talon(BaseModel):
     card_id: str
-
-
-class Talon(CardBase):
     issuer_id: int
     enabled: bool
-    finaldate: datetime
+    finaldate: date
 
     class Config:
         from_attributes = True
