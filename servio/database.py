@@ -16,7 +16,7 @@ url = "firebird+fdb://{}:{}@{}/{}?charset=UTF8&fb_library_name={}".format(
 
 SQLALCHEMY_DATABASE_URL = url
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
