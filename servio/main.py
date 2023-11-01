@@ -15,8 +15,8 @@ class LoggerRoute(APIRoute):
 
         async def logging_handler(request: Request) -> Response:
             req_body = await request.body()
-            logger.info(req_body.decode())
             response: Response = await original_route_handler(request)
+            logger.info(req_body.decode())
             res_body = response.body
             logger.info(res_body.decode())
             return response
