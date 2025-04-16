@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-load_dotenv("servio/.env")
+# load environment variables
+load_dotenv()
 db_host = os.getenv('DB_HOST')
 db_path = os.getenv('DB_PATH')
 db_user = os.getenv('DB_USER')

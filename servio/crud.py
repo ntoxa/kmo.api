@@ -9,17 +9,30 @@ def get_talon(db: Session, talon_id: str, issuer_id: int):
         and_(models.Talon.issuer_id == issuer_id, models.Talon.card_id == talon_id)).first()
 
 
-def get_talons(db: Session, issuer_id: int | None,  offset: int = 0, limit: int = 100):
-    if issuer_id:
-        return db.query(models.Talon).filter(
-            models.Talon.issuer_id == issuer_id).offset(offset).limit(limit).all()
-    return db.query(models.Talon).offset(offset).limit(limit).all()
+def get_talons(db: Session, issuer_id: int,  offset: int = 0, limit: int = 100):
+    return db.query(models.Talon).filter(
+        models.Talon.issuer_id == issuer_id).offset(offset).limit(limit).all()
 
 
-def get_talons_quantity(db: Session, issuer_id: int, talon_mask: str, enabled: bool):
-    return db.query(func.count(models.Talon.card_id)).filter(
-        and_(models.Talon.issuer_id == issuer_id, models.Talon.card_id.like(talon_mask), models.Talon.enabled == enabled)
-    ).scalar()
+def get_talons_quantity(db: Session, issuer_id: int, talon_mask: schemas.FuelType, enabled: bool, unexpired: bool):
+    talon_mask = talon_mask.value + "%"
+    with db.begin():
+        if unexpired:
+            return db.query(func.count(models.Talon.card_id)).filter(
+                and_(
+                    models.Talon.issuer_id == issuer_id,
+                    models.Talon.card_id.like(talon_mask),
+                    models.Talon.enabled == enabled,
+                    models.Talon.finaldate > func.now()
+                )
+            ).scalar()
+        return db.query(func.count(models.Talon.card_id)).filter(
+            and_(
+                models.Talon.issuer_id == issuer_id,
+                models.Talon.card_id.like(talon_mask),
+                models.Talon.enabled == enabled
+            )
+        ).scalar()
 
 
 def get_status_cards(db: Session, issuer_id: int, first_num: str, quantity: int, enabled: bool):
