@@ -78,7 +78,7 @@ def get_total(db: Session, date: date):
         result =  db.query(sqlite_models.Total).filter(
             sqlite_models.Total.created_at == date).first()
     if not result:
-        return None
+        return
     return result.data
 
 
