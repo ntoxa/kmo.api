@@ -16,9 +16,15 @@ def start_scheduler():
     SQLiteBase.metadata.create_all(bind=sqlite_engine)
     scheduler.start()
 
+
 @app.on_event("shutdown")
 def shutdown_scheduler():
     scheduler.shutdown()
+
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the KMO API😉"}
 
 
 app.include_router(firebird_routes.router)
