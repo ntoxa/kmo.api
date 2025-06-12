@@ -1,12 +1,8 @@
-import logging
-
 from datetime import date
 from sqlalchemy import and_, text
 from sqlalchemy.orm import Session
 from .models import firebird_models, sqlite_models
 from . import schemas
-
-logger = logging.getLogger("root").getChild(__name__)
 
 
 def get_talon(db: Session, talon_id: str, issuer_id: int):
@@ -81,6 +77,8 @@ def get_total(db: Session, date: date):
     with db.begin():
         result =  db.query(sqlite_models.Total).filter(
             sqlite_models.Total.created_at == date).first()
+    if not result:
+        return None
     return result.data
 
 
